@@ -1,0 +1,245 @@
+---
+title: "Databases and SQL"
+author: Hanna Damarjian
+date: November 1, 2021
+output: 
+  beamer_presentation: 
+    incremental: true
+    theme: "CambridgeUS"
+    colortheme: "wolverine"
+    fonttheme: "structurebold"
+    slide_level: 2
+---
+
+## Table of Contents
+The pieces of this presentation are organized as follows:
+
+\begin{enumerate}
+\item Databases
+\item DBMS and Types
+\item SQL
+\item Relevance to the Industry
+\item Queries 
+\end{enumerate}
+
+
+## Databases
+
+\textbf{Definition:} a \textbf{database} is any collection of related information. Some examples include: a phone book, shopping list, Facebook's User Base.
+
+Databases can be stored in different ways - on paper, in your mind, on a computer, this  R Markdown file, comments section, etc,... Think of a database as structured information or data that is stored electronically on a hard drive or other storage device of a computer.
+
+
+![Example of databases](C:/Users/johnd.LAPTOP-35N364TU/OneDrive/Desktop/Consulting/database.png){ width=40% }
+
+
+## Examples of Databases 
+
+\textbf{Amazon.com:}
+
+\begin{enumerate}
+\item Keeps track of products, reviews, purchase orders, credit cards, users, media, etc.
+\item Trillions of pieces of information need to be stored readily available.
+\item Information is extremely valuable (security is essential) and critical to Amazon.com's functioning.
+\end{enumerate}
+
+\textbf{Shopping list:}
+
+\begin{enumerate}
+\item Keeps track of consumer products that need to be purchased.
+\item Ten-twenty pieces of information need to be stored and readily available.
+\item Information is for convenience sake and not necessary for shopping.
+\end{enumerate}
+
+One of the best sources to contain, access, and manage your databases is your computer (or a \textbf{server}). So, how can we access the "database(s)"?
+
+## Database Management Systems (or DBMS)
+
+In order to access databases, users must communicate to the \textbf{database management system (DBMS)}. The DBMS is a special software program that helps users create and maintain a secure database.  It is \textit{not} an actual database. 
+
+\vspace{0.3in}
+
+The DBMS comprises the listed databases a user can concoct. These databases are filled with all sorts of invaluable data including tables, documents (e.g. JSON, XML), graphs, etc. The DBMS can create, read, update, and delete (C.R.U.D.) information on or in the database(s).
+
+
+\vspace{0.3in}
+
+
+An example of a DBMS is \textbf{Snowflake}. Organizations such as US Foods and the American Red Cross use Snowflake for a number of its stored data. 
+
+
+
+## DBMS Image
+![Example of DBMS ~ Snowflake](C:/Users/johnd.LAPTOP-35N364TU/OneDrive/Desktop/Consulting/RDBMS2.png){ width=100% }
+
+
+## Types of Databases 
+
+There are two types of databases on the DBMS:
+
+\textbf{Relational Databases (SQL):}
+
+\begin{enumerate}
+\item Data is organized into one or more tables.
+\item Each table has rows and columns (see last slide).
+\item A unique-key value identifies each row. This could be an observation unit number or SSN.
+\end{enumerate}
+
+\textbf{Non-relational Databases (non-SQL/not just SQL):}
+
+\begin{enumerate}
+\item Data is organized in anything but a table.
+\item Key value stores documents and graphs.
+\end{enumerate}
+
+
+## Relational vs. Non-relational Databases
+
+
+![Relational Database (tables)](C:/Users/johnd.LAPTOP-35N364TU/OneDrive/Desktop/Consulting/RDBMS.png){width=200px} ![Non-relational Database (documents)](C:/Users/johnd.LAPTOP-35N364TU/OneDrive/Desktop/Consulting/NRDB.jpg){width=250px}
+
+Above are two types of visualizations of stored information. Which is a relational database and which is a non-relational database? Why?
+
+\vspace{0.1in}
+
+For the rest of this presenation I will be explaining details about relational databases.
+
+
+## Relational Databases (SQL)
+
+Just as every database has its own DBMS, a relational database has its own \textbf{relational database management system (RDBMS)}. Some examples include: Snowflake, MySQL, Oracle, postgreSQL, mariaDB.
+
+\vspace{0.3in}
+
+Again, the goal of every DBMS (relational or non-relational) is to not only store its DBs but also to C.R.U.D. on its stored information. 
+
+\vspace{0.3in}
+
+\textbf{Question:} How can a user be able to access, C.R.U.D., and retrieve the desirable results from that stored information?
+
+\textbf{Solution:} We need to speak the language or \textit{communicate} to the RDBMS. That language is \textbf{SQL}.
+
+## SQL 
+
+\textbf{Structured Query Language (SQL)} is the standard language for interacting with the RDBMS. Elements of SQL include:
+
+\begin{enumerate}
+\item Used to perform C.R.U.D. operations, as well as other administrative tasks (user management, security, backup, etc).
+\vspace{0.2in}
+\item Used to define tables and structures (remember \textit{only} RDBMSs understand SQL).
+\vspace{0.2in}
+\item SQL code used on one RDBMS is not always portable to another w/out modification. In other words, the language of SQL varies across the type of RDBMS (or operating system).
+\end{enumerate}
+
+## SQL is a hybrid language
+
+\textbf{SQL} is four types of languages in one. It is a:
+
+\begin{enumerate}
+\item \textbf{Data Query Language (DQL)} - used to \textit{query} the database for information and get information that is already stored there.
+\vspace{0.2in}
+\item \textbf{Data Definition Language (DDL)} - used for \textit{defining} database schemas.
+\vspace{0.2in}
+\item \textbf{Data Control Language (DCL)} - used for \textit{controlling} access to the data in the database; requires user and permissions management.
+\vspace{0.2in}
+\item \textbf{Data Manipulation Language (DML)} - used for \textit{inserting, updating, and deleting} data from the database.
+\end{enumerate}
+
+## Relevance to the Industry
+
+According to Dataquest, the percentage of jobs in data that require SQL knowledge is quite drastic. For data science/analyst careers:
+
+![Source: StackOverFlow; $n \geq 10,000$](C:/Users/johnd.LAPTOP-35N364TU/OneDrive/Desktop/Consulting/jobs.png){width=50%}
+
+SQL is the most-used language in data science, according to the 10,000+ data professionals who responded to StackOverflow's 2020 survey.
+
+
+## SQL Queries
+
+A \textbf{query} is a set of instructions given to the RDBMS (written in SQL) that tell the RDBMS what information you want it to retrieve for you. The goal is to get the data you need/want to analyze!
+
+\vspace{0.25in}
+
+I want to share a few SQL queries (using the \textbf{iris} dataset on R). The package to write/communicate SQL queries on R is:
+
+```{r}
+library(sqldf) # SQL on a dataframe
+# We will use the function "sqldf()" for queries
+```
+
+
+## Query 1
+
+\textbf{Question:} Hey R (or Snowflake, whatever your RDBMS is), what are the first five observations from the iris table?
+
+\footnotesize
+```{r}
+sqldf("SELECT * 
+       FROM iris 
+       LIMIT 5")
+```
+
+\textbf{SELECT} returns the data (column(s) and corresponding rows), \textbf{"*"} means \textit{all columns}, \textbf{FROM} is the table you are retrieving the data from, and \textbf{LIMIT} specifies the first $x$ number of rows to select.
+
+## Query 2
+
+\textbf{Question:} Hey R, are there any iris flowers (species) that have a sepal length less than 4.5 cm?
+
+\footnotesize
+```{r}
+sqldf('SELECT Species,"Sepal.Length" 
+       FROM iris 
+       WHERE "Sepal.Length" < 4.5')
+```
+
+\textbf{WHERE} is a \textit{conditional clause} (or command). In other words, it takes a subset of the rows (under a column(s)) that meet a condition.
+
+
+## Query 3
+
+\textbf{Question:} Hey R, what are the flower types (species) that have an average petal width greater than 1 centimeter?
+
+\footnotesize
+```{r}
+sqldf('SELECT Species, AVG("Petal.Width") 
+       FROM iris
+       WHERE "Petal.Width" > 1
+       GROUP BY Species')
+```
+
+This is an example of \textbf{data aggregation}. In other words, we apply a function (in this case \textbf{"AVG()"}) on at least one row of our data column(s) (here it is \textbf{"Petal.Width"}) to deduce a question or problem.
+
+## References:
+
+\vspace{-0.2in}
+
+\textbf{Sources:}
+
+\footnotesize
+
+\textbf{Databases/SQL:} https://www.youtube.com/watch?v=HXV3zeQKqGY
+
+\textbf{Using SQL with R as RDBMS:} https://dept.stat.lsa.umich.edu/~jerrick/courses/stat701/notes/sql.html#where
+
+\textbf{Industry:} https://www.dataquest.io/blog/why-sql-is-the-most-important-language-to-learn/
+
+\normalsize
+
+\vspace{0.3in}
+\textbf{Images:}
+
+\footnotesize
+https://wallpapercave.com/wp/wp2347580.jpg
+
+https://data-science-blog.com/wp-content/uploads/2019/07/snowflake-sql-editor.png
+
+https://www.igcseict.info/theory/7_2/school/files/stacks_image_6771.png
+
+https://jelvix.com/wp-content/uploads/2020/05/whats-a-nonrelational-database.jpg
+
+
+## Wrap-Up
+
+\vspace{0.1in}
+
+\hspace{2.75cm}{\textbf{Thank you! Questions/Comments?}}

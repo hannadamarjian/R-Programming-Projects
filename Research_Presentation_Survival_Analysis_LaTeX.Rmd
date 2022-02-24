@@ -1,0 +1,221 @@
+---
+title: "Cox Regression for Two Competing Risks"
+author: "Hanna Damarjian; Dr. Perry; Survival Analysis" 
+date: "12/4/2021"
+output: 
+  beamer_presentation:
+    incremental: true
+    theme: "CambridgeUS"
+    fonttheme: "structurebold"
+    slide_level: 2
+---
+
+
+## Table of Contents 
+The pieces of this presentation are organized as follows:
+
+\begin{enumerate}
+\item Introduction
+\item Data Set-Up 
+\item Two Parameter Estimation Methods (Theory)
+\item Application
+\item Conclusion
+\end{enumerate}
+
+
+## Introduction
+
+\begin{itemize}
+
+\item Individuals face death from a number of risks. These risks \textit{compete} to become the actual cause of death, which gives rise to the situation of \textbf{competing risks}.
+
+\vspace{0.25in}
+
+\item More generally, this term applies when an individual may
+experience one of a number of different end-points, where the occurrence of
+any one of these hinders or eliminates the potential for others to occur.
+
+\vspace{0.25in}
+
+\item For example, suppose an individual with risk factors heart disease and type 2 diabetes dies. These two risks are \textbf{competing} with each other and one will be the occurrence of death.
+
+\end{itemize}
+
+## Outline of Paper
+
+\begin{itemize}
+
+\item The paper I have chosen, \textit{Applying Cox Regression to Competing Risks} proposes a way to analyze \textbf{two competing risks} and develops two methods to estimate the parameters. This is done under \textbf{Cox Regression modelling} and shows that it is possible to analyze competing risks using readily available standard programs.
+
+\vspace{0.25in}
+
+\item Assuming each method incorporates \textit{two types} of failures and some censored data, I discover that the parameter estimations for the first method combines (1) the \textbf{Additive Theorem of Probability} for two events and (2) the likelihood function that Cox proposed. The second method combines (1) the definition of \textbf{independence} for two events along with (2) noted prior.
+
+\vspace{0.25in}
+
+\item There is one application of the theory presented.
+
+\end{itemize}
+
+## Data Set-Up
+
+Assumptions (major) for both methods include:
+
+\begin{enumerate}
+
+\item $\forall i = 1,2,...,m$ indivdiuals, we define failure type, $\delta_{i}$, as $\delta_{i} = 0$ (if failure type 1 caused death) or $\delta_{i} = 1$ (if failure type 2 caused death). 
+
+\vspace{0.2in}
+
+\item Data for response failure time, $t_{i}$, is duplicated twice. If an individual has failure type 1 (for example), then failure type 2 is censored, *, and vice versa. \textit{What happens if we do not know the failure type for both?}
+
+\vspace{0.2in}
+
+\item If subject $i$ has failure time, $t_{i}$ and $\delta_{i} = 0$, then the covariates include $x_{i}, (\delta_{i} = 0)x_{i} = 0$. As a pair, the paper specifies this as (\textbf{x,0}). Analogously, if $\delta_{i} = 1$, then the covariate pair would be (\textbf{x,x}). 
+
+\vspace{0.2in}
+
+\item The hazard functions for the two types of risks are assumed to be additive. That is, the hazard of failure 1 or 2 is $(b'x_{i}) + (\delta_{i}b_{0} + b'x_{i} +  \theta'\delta_{i}x_{i})$. \textbf{What are} $b_{0}, b', \theta'$?
+
+
+\end{enumerate}
+
+
+## Method 1 Theory (Part A) presented
+
+Assuming no ties, the contribution to the partial likelihood if observation $i$ results in a failure (type 1 or type 2) is:
+
+
+\begin{equation}
+L(b_{0}, b', \theta') = \dfrac{e^{{b_{0}\delta_{i} + b'x_{i} + \theta'\delta_{i}x_{i}}}}{\sum\limits_{R_{i}}e^{{b_{0}\delta_{i} + b'x_{i} + \theta'\delta_{i}x_{i}}}}
+\end{equation}
+
+where the summation is over all survival times (including each appropriate second entry) which have neither failed nor been censored at $t_{i}$. Note that the contribution to the denominator from the two duplicated entries (from Assumption 3) is
+
+$$e^{b'x} + e^{b_{0} + b'x + \theta'x}.$$
+
+\textbf{Interpretation of} \textit{L}? We also assume, for example, that the hazard function for failure type 1 is proportional to $e^{b'x}h_{00}(t_{i})$.
+
+
+## Method 1 Theory A Implementation
+
+Recall that if we want to compare two groups, then we use the partial likelihood function with: $h_{1}(t_{i}) = e^{\beta x_{i}} h_{0}(t_{i})$. Also under the assumption that no ties occurred for failure times, Cox shows that 
+
+\begin{equation}
+L(\beta) = \prod\limits_{i=1}^{m}\dfrac{\exp(\beta x_{i})}{\sum\limits_{k \in R_{t_{i}}} \exp(\beta x_{k})}
+\end{equation}
+
+where $R(t_{i})$ is the risk set of subjects at $t_{i}$. We want to only estimate ($\beta$) and not ($\beta, t_{i}$). Hence the name \textit{partial likelihood}. 
+
+The difference is coming from Assumption 4 noted prior. That is, the hazard functions for the two types of risks are assumed to be additive where the hazard of failure 1 or 2 is $(b'x_{i}) + (\delta_{i}b_{0} + b'x_{i} +  \theta'\delta_{i}x_{i})$.
+
+## Method 1 Theory B Presented 
+
+\textbf{Theorem.} If $b' := b_{I}$ and $b'+\theta' := b_{II}$ and assuming no ties, then the full partial log-likelihood for two competing risks is:
+
+\begin{equation}
+\ln(L) = \sum\limits_{i,I} b_{I}x_{i} + \sum\limits_{i,II} (b_{0} + b_{II}x_{i}) - \sum\limits_{i}\ln(\sum\limits_{R_{i}}e^{(b_{I}x_{i})} + e^{(b_{0} + b_{II}x_{i})})
+\end{equation}
+
+where $\sum\limits_{i,I} b_{I}x_{i}$ is the sum of all type 1 failures, $\sum\limits_{i,II} (b_{0} + b_{II}x_{i})$ is over the type II failures, and $\sum\limits_{i}\ln(\sum\limits_{R_{i}}e^{b_{I}} + e^{b_{0} + b_{II}x_{i}})$ is over all failures (type 1 or type 2).
+
+\textbf{Note: parameter estimates by applying $\dfrac{\partial L}{\partial b_{I}}, \dfrac{\partial L}{\partial b_{II}},$ and $\dfrac{\partial L}{\partial b_{0}}$ and setting them all equal to 0.}
+
+## Method 1 Theory B Implemented 
+
+\textbf{Proof.} Denote $X$ to be a collection of random variables that takes discrete or continuous values based upon $i = 1,2,...,m$ individuals. Thus, $X = (X_{1}, X_{2},...X_{m})$ where $X_{i}$ represents the arbitrary covariate(s) for the $i$th individual.
+
+Now, let $U$ be the universal set of hazard ratios for two types of failures $-$ $A$ if failure type 1 is the leading cause ($\delta_{i} = 0$) and $B$ if failure type 2 is the leading cause ($\delta_{i} = 1$) $-$ such that $A,B \subset U$. So, $A,$ $B,$ $A \cap B,$ or $A \cup B$ occur and $(A \cup B)' = \emptyset$. Then:
+
+## Method 1 Theory B Implemented (Continued)
+
+\vspace{-0.25in}
+
+\small
+\begin{align*}
+P(A \cup B;b_{0}, b_{I},b_{II}) = & P(A; b_{0}, b_{I},b_{II}) + P(B; b_{0}, b_{I},b_{II}) - P(A \cap B; b_{0}, b_{I},b_{II})  \\
+P(A \cap B; b_{0}, b_{I},b_{II}) = & P(A; b_{0}, b_{I},b_{II}) + P(B; b_{0}, b_{I},b_{II}) - P(A \cup B; b_{0}, b_{I},b_{II})  \\
+L(b_{0},b_{I},b_{II}; A \cap B) = & L(b_{0},b_{I},b_{II}; A) + L(b_{0},b_{I},b_{II}; B) - L(b_{0},b_{I},b_{II}; A \cup B)\\
+= &  \prod_{i=1}^{m}\dfrac{e^{b_{I}x_{i}}}{\sum\limits_{R_{i}}(e^{b_{I}x_{i}} + e^{b_{0} + b_{II}x_{i}})} + \prod_{i=1}^{m}\dfrac{e^{b_{0} + b_{II}x_{i}}}{\sum\limits_{R_{i}}(e^{b_{I}x_{i}} + e^{b_{0} + b_{II}x_{i}})} \\ 
+& - \prod_{i=1}^{m}\dfrac{\sum\limits_{R_{i}}(e^{b_{I}x_{i}} + e^{b_{0} + b_{II}x_{i}})}{\sum\limits_{R_{i}}(e^{b_{I}x_{i}} + e^{b_{0} + b_{II}x_{i}})}.\\
+= & \dfrac{\prod_{i=1}^{m}e^{b_{I}x_{i}}}{\prod_{i=1}^{m}(\sum\limits_{R_{i}}(e^{b_{I}x_{i}} + e^{b_{0} + b_{II}x_{i}}))} + \dfrac{\prod_{i=1}^{m}e^{b_{0} + b_{II}x_{i}}}{\prod_{i=1}^{m}(\sum\limits_{R_{i}}(e^{b_{1}x_{i}} + e^{b_{0} + b_{II}x_{i}}))} \\ 
+& - \dfrac{\prod_{i=1}^{m}(\sum\limits_{R_{i}}(e^{b_{I}x_{i}} + e^{b_{0} + b_{II}x_{i}}))}{\prod_{i=1}^{m}(\sum\limits_{R_{i}}(e^{b_{I}x_{i}} + e^{b_{0} + b_{II}x_{i}}))}. \\
+\end{align*}
+
+## Method 1 Theory B Implemented (Continued)
+
+Now, the denominator of $L(b_{0},b_{I},b_{II}; A \cap B)$ is  $d := \prod_{i=1}^{m}(\sum\limits_{R_{i}}(e^{b_{I}x_{i}} + e^{b_{0} + b_{II}x_{i}}))$. We multiply out both sides by $d$, and then let $L := d*L(b_{0},b_{I},b_{II}; A \cap B)$. Finally, if we take the natural logarithm \textit{for each event} $A$, $B$, and $A \cup B$, then:
+
+\small
+\begin{align*}
+L = & \prod_{i=1}^{m}e^{b_{I}x_{i}} + \prod_{i=1}^{m}e^{b_{0} + b_{II}x_{i}} - \prod_{i=1}^{m}(\sum\limits_{R_{i}}(e^{b_{I}x_{i}} + e^{b_{0} + b_{II}x_{i}}))\\
+\ln(L) = & \ln(\prod_{i,I} e^{b_{I}x_{i}}) + \ln(\prod_{i,II} e^{(b_{0} + b_{II}x_{i})}) - \ln(\prod_{i,I,II}(\sum\limits_{R_{i}}e^{b_{I}} + e^{b_{0} + b_{II}x_{i}})) \\
+= & \ln(e^{\sum\limits_{i,I}b_{I}x_{i}}) + \ln(e^{\sum\limits_{i,II}(b_{0} + b_{II}x_{i})}) - \sum\limits_{i,I,II}\ln(\sum\limits_{R_{i}}(e^{b_{I}} +e^{b_{0} + b_{II}x_{i}}))  \\
+= & \sum\limits_{i,I}b_{I}x_{i} + \sum\limits_{i,II}(b_{0} + b_{II}x_{i}) - \sum\limits_{i,I,II}\ln(\sum\limits_{R_{i}}(e^{b_{I}} +e^{b_{0} + b_{II}x_{i}})). \\
+\end{align*}
+
+## Method 2 Theory Presented - Stratification
+
+Another method discussed in the paper states to run a Cox regression on the covariates \textbf{x} and $\delta$\textbf{x} while stratifying by failure type, $\delta = 0$ or 1. 
+\vspace{0.5in}
+
+\textbf{Theorem.} When treating the survival times of the two types of failures separately, the \textbf{partial likelihood} for two failure types with regression coefficients $b',\theta$, and unknown baseline hazard functions, $h_{00}, h_{01}$, is: 
+
+\begin{equation}
+L(b',b'+\theta) = \prod_{t_{i},\delta_{i}=0}\dfrac{e^{{b'x_{i}}}}{\sum\limits_{R_{i}}e^{{b'x_{i}}}}\prod_{t_{i},\delta_{i}=1}\dfrac{e^{{b'x_{i}+\theta x_{i}}}}{\sum\limits_{R_{i}}e^{{b'x_{i}+\theta x_{i}}}}.
+\end{equation}
+
+\textbf{Remark}: the risk set for each case consists of those subjects with the appropriate stratum identifier, $\delta = 0$ for the first and $\delta = 1$ for the second.
+
+## Method 2 Theory Implemented - Stratification
+
+\textbf{Proof.} Denote event $C$ to be the hazard ratio for a patient led to death by failure type 1 and event $D$ the hazard ratio for a patient led to death by failure type 2. Given sample points $(x_{i},\delta_{i}x_{i})$ for all $i = 1,2,...,m$ individuals, we want to find the likelihood function corresponding to $P(C_{i} \cap D_{i})$. 
+
+From the assumptions, the likelihood function according to $C$ is $L(b', \theta;C) = P(C; b', \theta) = \prod_{i=1}^{m}P(C_{i}; b',\theta) = \prod_{i=1}^{m}\dfrac{e^{b'x_{i} + \theta(\delta_{i}=0)x_{i}}}{\sum\limits_{R_{i}}e^{b'x_{i} + \theta(\delta_{i}=0)x_{i}}} = \prod_{i=1}^{m}\dfrac{e^{b'x_{i}}}{\sum\limits_{R_{i}}e^{b'x_{i}}}$ where $b'$ is the unknown parameter estimate for the discrete or continuous covariate $x_{i}$, $\theta$ is the unknown parameter estimate for failure type 2, $\sum\limits_{R_{i}}$ represents the risk set $\forall i \in [1,m]$ that are  uncensored, and $\delta_{i} = 0$ here for failure type 1.
+
+## Method 2 Theory Implemented - Stratification (Cont.)
+
+Similarly, the likelihood function according to $D$ is $L(b', \theta;D) = P(D;b', \theta) = \prod_{i=1}^{m}P(D_{i}; b', \theta) = \prod_{i=1}^{m}\dfrac{e^{b'x_{i} +\theta (\delta_{i}=1) x_{i}}}{\sum\limits_{R_{i}}e^{b'x_{i} +\theta (\delta_{i}=1) x_{i}}} = \dfrac{e^{b'x_{i} +\theta x_{i}}}{\sum\limits_{R_{i}}e^{b'x_{i} +\theta x_{i}}}$. Since $C$ = ($C_1, C_2,...,C_m)$ and $D = (D_1,D_2,..,D_m)$ are independent (due to the stratification) $\rightarrow$ $C_{i}$ and $D_{i}$ are independent $\rightarrow$ $P(C_{i})$ and $P(D_{i})$ are also independent. Finally, if $L(b', \theta; C \cap D) := P(C \cap D; b', \theta)$, then:
+
+\small 
+\begin{align*}
+P(C \cap D; b', \theta) = & P(C; b', \theta)P(D; b', \theta) \\
+= & \prod_{i=1}^{m}P(C_{i}; b',\theta)\prod_{i=1}^{m}P(D_{i}; b',\theta)\\
+= & \prod_{i=1}^{m}\dfrac{e^{b'x_{i}}}{\sum\limits_{R_{i}}e^{b'x_{i}}}\prod_{i=1}^{m}\dfrac{e^{b'x_{i} +\theta x_{i}}}{\sum\limits_{R_{i}}e^{b'x_{i} +\theta x_{i}}}. \\
+\end{align*}
+
+## Critiquing the Paper's Implementation 
+
+\vspace{-0.25in}
+
+\textbf{Prostate Cancer}
+
+Survival times of $m=506$ patients with prostate cancer were randomly allocated to different levels of treatment with the drug diethylstilbestrol (DES). There were eight specific risk factors (including drug treatment), and 23 subjects had incomplete data. The failures or causes of death were classifed as (1) cancer, (2) cardiovascular, or (3) other.
+
+There are two important graphs of information to analyze in competing risks data: the \textbf{cause-specific survival curve} and the \textbf{proportion hazards curves} to ensure the Cox Proportional Hazards Model can be applied.
+
+\vspace{0.5in}
+
+\textbf{Question: What is the difference between the cause-specific survival curve(s) and the general KM survival curve we used?}
+
+## Graph 1: Cause-Specific Survival Curve
+
+![Method B is preferred](C:\Users\johnd.LAPTOP-35N364TU\OneDrive\Desktop\Survival Analysis/cssc.JPG){ width=70% }
+
+## Graph 2: Proportional Hazards Curve (Major Assumption)
+
+
+![Method A is preferred](C:\Users\johnd.LAPTOP-35N364TU\OneDrive\Desktop\Survival Analysis/phm.JPG){ width=60% }
+
+## Graph 3: Model after Graph 2 meets PH assumption
+
+![Method A Model Coefficients](C:\Users\johnd.LAPTOP-35N364TU\OneDrive\Desktop\Survival Analysis/table.JPG){ width=90% }
+
+## Conclusion
+
+The overall theme of the research paper was to theorize and implement two types of methods for fitting a Cox Proportional Hazards Model to cause-specific survival data. The methods involved the assumption of two different failure types (competing risks) and any number of non-failure covariates.
+
+
+\vspace{0.5in}
+
+\textbf{Thank you!}

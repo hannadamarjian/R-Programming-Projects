@@ -1,0 +1,360 @@
+---
+title: "Australian Rain Project"
+author: "Hanna Damarjian"
+date: "12/12/2021"
+output: pdf_document
+---
+
+\large 
+```{r}
+ar <- read.csv("C://Users//johnd.LAPTOP-35N364TU//OneDrive//Desktop//Predictive Analytics//train.csv")
+# View(ar) --> all columns included from Kaggle
+
+
+# Methodology:
+
+# 1. Exploratory Data Analysis:
+# A. Dataframe 
+nrow(ar) # 34,191 rows
+length(ar) # 24 columns
+total_entries <- nrow(ar)*length(ar)
+total_entries # 820,584 total entries
+# summary(ar) --> summary statistics for each variable
+library(skimr)
+# skim(ar) --> shows the data type, mean, sd, and hist for each variable
+
+
+# B. Missing values (NA):
+sum(is.na(ar)) #  112,769 missing entries 
+percentage_of_filled_entries <- 
+  100*(total_entries-sum(is.na(ar)))/total_entries
+percentage_of_filled_entries # about 86.26% of cells are filled.
+
+# Which variables (columns) contain NA?
+# What is the percentage of NA's for each variable?
+
+colSums(is.na(ar))/nrow(ar)
+# I will omit evaporation and sunshine as % of missing values is close to 100.
+
+
+# "cloud9am" and "cloud3pm" are the only variables where 0.1 < x < 0.90.
+# I will omit these variables as well. Why?
+
+# Drop the two variables:
+ar <- subset(ar, select=-c(evaporation,sunshine,cloud3pm, cloud9am))
+length(names(ar)) # ensure the four variables are dropped
+
+
+# C. Change the string variables into factors:
+
+# Change all character variables into factor variables:
+# Use skim(ar) to determine which string variables needed to be factored:
+# skim(ar)
+ar$location <- as.factor(ar$location)
+ar$wind_gust_dir <- as.factor(ar$wind_gust_dir)
+ar$wind_dir9am <- as.factor(ar$wind_dir9am)
+ar$wind_dir3pm <- as.factor(ar$wind_dir3pm)
+ar$rain_today <- as.factor(ar$rain_today)
+ar$rain_tomorrow <- as.factor(ar$rain_tomorrow)
+skim(ar)
+
+# D. Imputation (MICE):
+# Imputating the numeric variables using "" method:
+library(mice)
+
+
+ar2 <- ar # keep an extra copy of original dataset to compare
+#arNEW <- subset()
+library(VIM) # used for aggregate plot
+
+# Top five variables with missing data are 
+# (1) pressure9am, (2) pressure3pm, (3) wind_dir9am,
+# (4) wind_gust_speed, and (5) wind_gust_dir.
+top_5_me <- subset(ar, select=c('pressure9am', 'pressure3pm',
+                                'wind_dir9am', 'wind_gust_speed',
+                                'wind_gust_dir'))
+aggr_plot <- aggr(top_5_me, col=c("navyblue","red"), numbers=TRUE, sortVars=TRUE, 
+                  labels=names(top_5_me), cex.axis=0.7, gap=3, ylab = 
+                    c("Histogram of Missing Data","Pattern"))
+# Explain.
+
+# Finally, impute using random forest (what else could I have done differently?):
+
+imputed_ar <- mice(ar, m=3, method="rf")
+# View(complete(imputed_ar)) check out the dataset and compare to original "ar"
+finished_imputed_ar <- complete(imputed_ar,1)
+dim(finished_imputed_ar)
+sapply(finished_imputed_ar, function(x) sum(is.na(x)))
+
+write.csv(finished_imputed_ar,
+          "C:/Users/johnd.LAPTOP-35N364TU/OneDrive/Desktop/Predictive Analytics/fi_ar.csv")
+
+
+
+# ---------------------------------------------------------------------------------------------
+```
+
+```{r}
+# Australian Rain dataset after imputation:
+ar <- read.csv("C:/Users/johnd.LAPTOP-35N364TU/OneDrive/Desktop/Predictive Analytics/fi_ar.csv")
+sum(is.na(ar))
+
+library(skimr)
+skim(ar)
+
+# 1. Factorize the variables:
+ar$location <- as.factor(ar$location)
+ar$wind_gust_dir <- as.factor(ar$wind_gust_dir)
+ar$wind_dir9am <- as.factor(ar$wind_dir9am)
+ar$wind_dir3pm <- as.factor(ar$wind_dir3pm)
+ar$rain_today <- as.factor(ar$rain_today)
+ar$rain_tomorrow <- as.factor(ar$rain_tomorrow)
+skim(ar)
+View(ar) # omit the first column, X
+
+# 2. Omit the row-counter column:
+ar2 <- subset(ar, select=-c(X))
+View(ar2)
+
+
+# 3. Change the date column to specify the month only:
+
+library(lubridate)
+ar2$date <- month(as.POSIXlt(ar2$date, format="%Y-%m-%d"))
+
+
+# 4. Create dummy variables:
+library(fastDummies)
+ar2_dummy <- dummy_cols(ar, select_columns = c('location','wind_gust_dir','wind_dir3pm','wind_dir9pm', 
+                      remove_selected_columns=TRUE))
+
+
+
+
+
+
+# 5. Feature Selection by building several machine learning models.
+
+# A. Binomial Logistic Regression:
+ar2_glm <- glm(rain_tomorrow ~ ., data=ar2, family="binomial")
+summary(ar2_glm)
+
+# We can use the "caret" package to determine feature importance.
+library(caret)
+varImp(ar2_glm)
+
+# Next steps:
+# a. Create subsetted data for the 4-7 variables and create ML code for classification.
+# b. Create a graph for each number of significant variables and how many trained observations
+# were classified correctly.
+
+library(fastDummies)
+ar2_var <- subset(ar2_dummy, select=c(rain_tomorrow,humidity3pm, wind_gust_speed, pressure3pm,
+                     location_MountGinini, wind_speed3pm, 
+                     location_Wollongong, rain_today))
+```
+
+```{r}
+set.seed(123)
+var_count_per_cc <- c() # for i number of variables
+per_cc <- c() # for j training sets, we have the number of correct classifications
+
+
+for (i in 2:8){ # For predictor count
+  ar2_var_imp <- ar2_var[,1:i] # since 9*(k=3799) = 34191, we will have 8 trained and 1 tested.We also start with 1 variable.
+  # 8*3799 = 30392
+  for (j in 1:9){ # For training/testing
+    rgifeo <- sample(rep(1:9, each = 3799), replace=FALSE) 
+    
+    # Pick training data:
+    train.subset <- ar2_var_imp[rgifeo != j, ]
+    
+    # Pick testing data:
+    test.subset <- ar2_var_imp[rgifeo == j, ]
+    
+    # Train the binomial logistic regression model:
+    ar2_glm <- glm(rain_tomorrow ~ ., data=train.subset, family="binomial")
+    
+    # Predict the output (estimated probability):
+    ar2_glm.probs <- predict(ar2_glm, test.subset, type="response")
+    
+    # Create a vector of test length filled with "No's":
+    glm.pred=rep(0,nrow(test.subset))
+    
+    # Create the resulting vector where any P(rain_tom) > 0.5 --> "Yes":
+    glm.pred[ar2_glm.probs >.5]=1
+    glm.pred <- as.factor(glm.pred)
+    
+    # Find percentage of correctly classified results:
+    per_cc[j] <- mean(glm.pred==ar2_var_imp$rain_tomorrow)
+  }
+  
+  var_count_per_cc[i] <- median(per_cc)
+  
+}
+var_count_per_cc <- var_count_per_cc[-1] # Make sure this is always length = 7!
+
+plot(1:7, var_count_per_cc, main = "Correct Classifications from Logistic Regression",
+     xlab = "Number of Variables", ylab = "Percentage of Correct Classifications")
+lines(1:7,var_count_per_cc,)
+```
+
+
+
+```{r}
+# B. Random Forest:
+# library(randomForest)
+#ar2_rf <- randomForest(rain_tomorrow ~ ., data=ar2)
+# importance(ar2_rf)
+# varImp(ar2_rf)
+#varImpPlot(ar2_rf)
+
+# Next steps:
+# a. Create subsetted data for the 4-7 variables and create ML code for classification.
+# b. Create a graph for each number of significant variables and how many trained observations
+# were classified correctly.
+
+set.seed(123)
+var_count_per_cc2 <- c() # for i number of variables
+per_cc2 <- c() # for j training sets, we have the number of correct classifications
+
+ar2_var2 <- subset(ar2_dummy, select=c(rain_tomorrow, humidity3pm, location, wind_dir9am,
+                                       wind_gust_dir, wind_dir3pm, pressure3pm,
+                                       pressure9am))
+
+for (i in 2:8){ # For predictor count
+  ar2_var_imp2 <- ar2_var2[,1:i] # since 9*(k=3799) = 34191, we will have 8 trained and 1 tested.We also start with 1 variable.
+  # 8*3799 = 30392
+  for (j in 1:9){ # For training/testing
+    rgifeo2 <- sample(rep(1:9, each = 3799), replace=FALSE) 
+    
+    # Pick training data:
+    train.subset2 <- ar2_var_imp2[rgifeo2 != j, ]
+    
+    # Pick testing data:
+    test.subset2 <- ar2_var_imp2[rgifeo2 == j, ]
+    
+    # Train the random forest model:
+    ar2_rf <- randomForest(rain_tomorrow ~ ., data=train.subset2)
+    
+    # Predict the output (estimated probability):
+    ar2_rf.class <- predict(ar2_rf, test.subset2, type="response")
+    
+    # Find percentage of correctly classified results:
+    per_cc2[j] <- mean(ar2_rf.class==ar2_var_imp2$rain_tomorrow)
+  }
+  
+  var_count_per_cc2[i] <- median(per_cc2)
+  
+}
+var_count_per_cc2 <- var_count_per_cc2[-1] # Make sure this is always length = 7!
+
+plot(1:7, var_count_per_cc2, main = "Correct Classifications from Random Forest",
+     xlab = "Number of Variables", ylab = "Percentage of Correct Classifications")
+lines(1:7,var_count_per_cc2)
+```
+
+```{r}
+# C. Support Vector Machine:
+
+library(e1071)
+
+set.seed(123)
+var_count_per_cc3 <- c() # for i number of variables
+per_cc3 <- c() # for j training sets, we have the number of correct classifications
+
+ar2_var3 <- subset(ar2_dummy, select=c(rain_tomorrow, humidity3pm, location, pressure3pm))
+
+for (i in 2:4){ # For predictor count
+  ar2_var_imp3 <- ar2_var3[,1:i] 
+  
+  for (j in 1:3){ # For training/testing
+    rgifeo3 <- sample(rep(1:9, each = 11397), replace=FALSE) 
+    
+    # Pick training data:
+    train.subset3 <- ar2_var_imp3[rgifeo3 != j, ]
+    
+    # Pick testing data:
+    test.subset3 <- ar2_var_imp3[rgifeo3 == j, ]
+    
+    # Train the random forest model:
+    ar2_svm <- svm(rain_tomorrow ~ ., kernel = "linear",
+                   cost = 0.1, data=train.subset3, scale=FALSE)
+    
+    # Predict the output (estimated probability):
+    ar2_svm.class <- predict(ar2_svm, test.subset3)
+    
+    # Find percentage of correctly classified results:
+    per_cc3[j] <- mean(ar2_svm.class==ar2_var_imp3$rain_tomorrow)
+  }
+  
+  var_count_per_cc3[i] <- median(per_cc3)
+  
+}
+var_count_per_cc3 <- var_count_per_cc3[-1] # Make sure this is always length = 7!
+```
+
+```{r}
+plot(1:3, var_count_per_cc3, main = "Correct Classifications from SVM",
+     xlab = "Number of Variables", ylab = "Percentage of Correct Classifications")
+lines(1:3,var_count_per_cc3)
+```
+
+```{r}
+# Tune parameter for future
+set.seed(123)
+tune.out=tune(svm, rain_tomorrow ∼ ., data=ar2_var3, kernel ="linear", 
+              ranges=list(cost=c(0.001, 0.01, 0.1, 1,
+              5,10,100)))
+```
+
+```{r}
+# Final model: Use a random forest with one variable (humidity3pm):
+ar <- read.csv("C://Users//johnd.LAPTOP-35N364TU//OneDrive//Desktop//Predictive Analytics//test.csv")
+# View(ar) --> all columns included from Kaggle
+
+
+# Change the string variables into factors:
+
+# Change all character variables into factor variables:
+# Use skim(ar) to determine which string variables needed to be factored:
+# skim(ar)
+ar$location <- as.factor(ar$location)
+ar$wind_gust_dir <- as.factor(ar$wind_gust_dir)
+ar$wind_dir9am <- as.factor(ar$wind_dir9am)
+ar$wind_dir3pm <- as.factor(ar$wind_dir3pm)
+ar$rain_today <- as.factor(ar$rain_today)
+
+# D. Imputation (MICE):
+# Imputating the numeric variables using "" method:
+library(mice)
+
+
+imputed_ar <- mice(ar, m=1, method="rf")
+# View(complete(imputed_ar)) check out the dataset and compare to original "ar"
+finished_imputed_ar <- complete(imputed_ar,1)
+dim(finished_imputed_ar)
+sapply(finished_imputed_ar, function(x) sum(is.na(x)))
+
+write.csv(finished_imputed_ar,
+          "C:/Users/johnd.LAPTOP-35N364TU/OneDrive/Desktop/Predictive Analytics/test_ar.csv")
+```
+
+```{r}
+# Test data set:
+
+ar <- read.csv("C:/Users/johnd.LAPTOP-35N364TU/OneDrive/Desktop/Predictive Analytics/test_ar.csv")
+
+library(randomForest)
+ar2_rf <- randomForest(rain_tomorrow ~ humidity3pm, data=ar2_var2)
+
+predictor.test <- subset(ar, select=c("humidity3pm"))
+ar2_rf.class <- predict(ar2_rf, predictor.test, type="response")
+
+id <- subset(ar, select=c('id'))
+
+arsubmission <- cbind(id,ar2_rf.class)
+
+write.csv(arsubmission,
+          "C:/Users/johnd.LAPTOP-35N364TU/OneDrive/Desktop/Predictive Analytics/final.csv")
+```
